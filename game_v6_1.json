@@ -1,0 +1,74 @@
+[
+  {
+    "subject": "science",
+    "area": "cell",
+    "mode": "learn",
+    "icon": "📖",
+    "title": "Cell Summary",
+    "grade": "ม.ต้น",
+    "difficulty": "⭐",
+    "tags": "เซลล์ organelle membrane",
+    "desc": "อ่านสรุปเรื่องเซลล์ก่อนเริ่มเล่น",
+    "url": "#"
+  },
+  {
+    "subject": "science",
+    "area": "cell",
+    "mode": "practice",
+    "icon": "🔬",
+    "title": "Cell Quest",
+    "grade": "ม.ต้น",
+    "difficulty": "⭐⭐",
+    "tags": "เซลล์ ออร์แกเนลล์ เยื่อหุ้มเซลล์",
+    "desc": "ทบทวนส่วนประกอบของเซลล์และหน้าที่สำคัญ",
+    "url": "#"
+  },
+  {
+    "subject": "science",
+    "area": "solution",
+    "mode": "practice",
+    "icon": "💧",
+    "title": "พิชิตสารละลาย ม.2",
+    "grade": "ม.2",
+    "difficulty": "⭐⭐⭐",
+    "tags": "สารละลาย ความเข้มข้น เจือจาง",
+    "desc": "ฝึกโจทย์สารละลายและการคำนวณแบบเข้มข้น",
+    "url": "#"
+  },
+  {
+    "subject": "math",
+    "area": "fraction",
+    "mode": "practice",
+    "icon": "½",
+    "title": "Fraction Master",
+    "grade": "ป.ปลาย-ม.ต้น",
+    "difficulty": "⭐⭐⭐",
+    "tags": "เศษส่วน บวก ลบ คูณ หาร",
+    "desc": "ฝึกเศษส่วนหลายขั้นตอนพร้อมคิดอย่างเป็นระบบ",
+    "url": "#"
+  },
+  {
+    "subject": "english",
+    "area": "verbs",
+    "mode": "challenge",
+    "icon": "⌨️",
+    "title": "Fast Fill Verbs",
+    "grade": "ป.ปลาย-ม.ต้น",
+    "difficulty": "⭐⭐⭐",
+    "tags": "เติมไว keyboard verbs V1 V2 V3",
+    "desc": "เติมกริยา 3 ช่องด้วยแป้นพิมพ์ในเกม",
+    "url": "#"
+  },
+  {
+    "subject": "english",
+    "area": "verbs",
+    "mode": "practice",
+    "icon": "🎮",
+    "title": "VERB123-chalenge",
+    "grade": "ป.4-6",
+    "difficulty": "⭐⭐⭐",
+    "tags": "verb123",
+    "desc": "ฝึกกริยาสามช่องโดยเติมคำในช่องว่างให้ถูกต้อง",
+    "url": "https://krupaiclassroom68.github.io/Krupai-English-V123-set1/"
+  }
+]
