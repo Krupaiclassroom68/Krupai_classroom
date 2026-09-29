@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Kru Pai Digital Classroom V2.2 — Student</title>
+<title>Kru Pai Digital Classroom V2.3 — Student Access</title>
 <style>
 :root{
   --ink:#17324d;--muted:#6f8294;--paper:#fffef9;--mint:#4ed9bd;--sky:#6bbcff;
@@ -169,7 +169,7 @@ button,input{font:inherit}
     <p>ห้องเรียนดิจิทัล • เรียนรู้ผ่านภารกิจและเกม 🎮📚</p>
   </header>
   <main id="app"></main>
-  <div class="footer">Kru Pai Digital Classroom • Student Web V2.2</div>
+  <div class="footer">Kru Pai Digital Classroom • Student Web V2.4H • Student History Bridge</div>
 </div>
 
 <div id="welcome" class="welcome-overlay">
@@ -234,37 +234,56 @@ function renderLogin(){
   session={student:null,classroom:null};
   $('app').innerHTML=`<div class="card login">
     <div class="login-icon">🎒</div><h2>เข้า Classroom ของฉัน</h2>
-    <p class="muted">กรอกรหัสนักเรียนของคุณ</p>
-    <input id="code" class="field" placeholder="KP001" maxlength="16" autocomplete="off">
-    <button id="loginBtn" class="btn primary big" onclick="login()">🚪 เปิดประตูเข้าเรียน</button>
+    <p class="muted">กรอกรหัสนักเรียน และ Daily Code ที่คุณครูให้วันนี้ 🔐</p>
+    <input id="code" class="field" placeholder="รหัสนักเรียน เช่น KP005" maxlength="16" autocomplete="off">
+    <input id="dailyCode" class="field" style="margin-top:10px;text-align:center;font-size:26px;font-weight:900;letter-spacing:.14em" placeholder="Daily Code" maxlength="8" autocomplete="off">
+    <button id="loginBtn" class="btn primary big" onclick="login()">🔓 ตรวจรหัสและเข้าเรียน</button>
     <div id="onlineStatus" class="notice" data-state="loading">กำลังเชื่อมต่อห้องเรียน Online...</div>
     <button id="retryBtn" class="btn" style="display:none;margin-top:8px" onclick="loadData()">🔄 ลองเชื่อมต่อใหม่</button>
     <div id="err" class="error"></div>
-    <div class="notice">🔐 ระบบจะแสดงเฉพาะห้องเรียนที่รหัสนี้ได้รับสิทธิ์</div>
+    <div class="notice">🔑 Daily Code ใช้สำหรับสิทธิ์เข้าเรียนของวันนี้เท่านั้น</div>
   </div>`;
-  $('code').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
+  $('code').addEventListener('keydown',e=>{if(e.key==='Enter')$('dailyCode')?.focus()});
+  $('dailyCode').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
   setTimeout(()=>$('code')?.focus(),100);
-  if(onlineReady){
-    updateLoginStatus(`🟢 ห้องเรียนพร้อม • ${DATA?.classrooms?.length||0} Classroom`,'ok');
-  }else{
-    loadData();
-  }
+  if(onlineReady) updateLoginStatus(`🟢 ห้องเรียนพร้อม • ${DATA?.classrooms?.length||0} Classroom`,'ok');
+  else loadData();
 }
-function login(){
+function localAccessDate(){
+  const d=new Date();
+  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+async function checkAccess(studentCode,classroomCode,dailyCode){
+  const res=await fetch(ONLINE_FUNCTION_URL,{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'check-access',studentCode,classroomCode,dailyCode,accessDate:localAccessDate()}),cache:'no-store'
+  });
+  const j=await res.json().catch(()=>null);
+  if(!res.ok)throw new Error((j&&j.error)||('HTTP '+res.status));
+  if(!j||j.ok!==true)throw new Error((j&&j.error)||'ตรวจสิทธิ์ไม่สำเร็จ');
+  return j.hasAccess===true;
+}
+async function login(){
   const code=$('code').value.trim().toUpperCase();
+  const dailyCode=$('dailyCode').value.trim().toUpperCase();
   if(!code)return showErr('กรุณากรอกรหัสนักเรียนก่อน');
-  if(!onlineReady||!DATA){
-    showErr(onlineLoading?'กำลังเชื่อมต่อห้องเรียน Online กรุณารอสักครู่':'ยังเชื่อมต่อห้องเรียนไม่ได้ กรุณากด “ลองเชื่อมต่อใหม่”');
-    if(!onlineLoading)loadData();
-    return;
-  }
+  if(!dailyCode)return showErr('กรุณากรอก Daily Code ที่คุณครูให้วันนี้ 🔑');
+  if(!onlineReady||!DATA){showErr(onlineLoading?'กำลังเชื่อมต่อห้องเรียน Online กรุณารอสักครู่':'ยังเชื่อมต่อห้องเรียนไม่ได้ กรุณากด “ลองเชื่อมต่อใหม่”');if(!onlineLoading)loadData();return;}
   const st=(DATA.students||[]).find(x=>String(x.code).toUpperCase()===code);
-  if(!st)return showErr('ไม่พบรหัสนี้ใน Classroom ที่เปิดเรียนอยู่');
-  const rooms=(DATA.classrooms||[]).filter(c=>(c.memberCodes||[]).includes(st.code));
-  if(!rooms.length)return showErr('รหัสนี้ยังไม่มีสิทธิ์เข้า Classroom ที่เปิดอยู่');
-  session.student=st;
-  showWelcome(st.name);
-  setTimeout(()=>{if(rooms.length===1){session.classroom=rooms[0];renderClassroom()}else renderRoomChoice(rooms)},900);
+  if(!st)return showErr('ไม่พบรหัสนักเรียนนี้ใน Classroom ที่เปิดเรียนอยู่');
+  const memberRooms=(DATA.classrooms||[]).filter(c=>(c.memberCodes||[]).includes(st.code));
+  if(!memberRooms.length)return showErr('รหัสนักเรียนนี้ยังไม่ได้เป็นสมาชิก Classroom');
+  const btn=$('loginBtn'),oldText=btn?.textContent;if(btn){btn.disabled=true;btn.textContent='🔐 กำลังตรวจ Daily Code...';}
+  const err=$('err');if(err)err.style.display='none';
+  try{
+    const checks=await Promise.all(memberRooms.map(async room=>({room,allowed:await checkAccess(st.code,room.code,dailyCode)})));
+    const rooms=checks.filter(x=>x.allowed).map(x=>x.room);
+    if(!rooms.length){showErr('❌ Daily Code ไม่ถูกต้อง หรือคุณครูยังไม่ได้เปิดสิทธิ์สำหรับวันนี้ 🔑');return;}
+    session.student=st;showWelcome(st.name);
+    setTimeout(()=>{if(rooms.length===1){session.classroom=rooms[0];renderClassroom()}else renderRoomChoice(rooms)},900);
+  }catch(e){showErr('ตรวจสิทธิ์เข้าเรียนไม่สำเร็จ: '+(e?.message||String(e)));}
+  finally{if(btn){btn.disabled=false;btn.textContent=oldText||'🔓 ตรวจรหัสและเข้าเรียน';}}
 }
 function showWelcome(name){$('welcomeName').textContent='ยินดีต้อนรับ '+name+' ✨';$('welcome').classList.remove('show');void $('welcome').offsetWidth;$('welcome').classList.add('show')}
 function showErr(t){const e=$('err');e.textContent=t;e.style.display='block'}
@@ -303,7 +322,7 @@ function renderClassroom(){
 
     <div class="classroom-identity">
       <div class="classroom-name-big"><span class="room-icon">🏫</span><span>${esc(c.name||'Kru Pai Classroom')}</span></div>
-      <div class="classroom-code-pill">${esc(c.code||'CLASSROOM')}</div>
+      <div class="classroom-code-pill">🔓 ผ่านสิทธิ์วันนี้ • ${esc(c.code||'CLASSROOM')}</div>
     </div>
 
     <section class="room-board" data-subject="${theme}">
@@ -334,13 +353,32 @@ function renderClassroom(){
     <div class="return-tip">🏫 <span>เวลาเข้าเกมแล้ว ถ้ามีปัญหาหรืออยากกลับออกมา กด <b>กลับห้องเรียน</b> ที่แถบด้านบนได้ทันที</span></div>
   </div>`;
 }
+// Kru Pai Student Bridge V1
+// ส่งเฉพาะ Student Code + ชื่อจาก session ที่ผ่าน check-access แล้วไปยังเกม
+// ไม่บันทึกคะแนนและไม่เปลี่ยนการทำงานของ Supabase
+function buildStudentGameUrl(rawUrl){
+  if(!rawUrl)return '';
+  try{
+    const u=new URL(rawUrl,window.location.href);
+    const code=String(session.student?.code||'').trim();
+    const name=String(session.student?.name||'').trim();
+    if(code)u.searchParams.set('student',code);
+    if(name)u.searchParams.set('name',name);
+    return u.href;
+  }catch(e){
+    const sep=String(rawUrl).includes('?')?'&':'?';
+    const code=encodeURIComponent(String(session.student?.code||'').trim());
+    const name=encodeURIComponent(String(session.student?.name||'').trim());
+    return rawUrl+sep+'student='+code+'&name='+name;
+  }
+}
 function playGame(i){
   const g=session.classroom?.currentLesson?.games?.[i];
   if(!g?.url)return alert('เกมนี้ยังไม่มีลิงก์เล่น');
   currentGame=g;
   $('playerGameName').textContent=g.name||'Kru Pai Game';
   $('playerRoomName').textContent='🏫 '+(session.classroom?.name||'Kru Pai Classroom');
-  $('gameFrame').src=g.url;
+  $('gameFrame').src=buildStudentGameUrl(g.url);
   $('player').classList.add('show');
   document.body.style.overflow='hidden';
 }
@@ -351,7 +389,7 @@ function closeGamePlayer(){
   currentGame=null;
 }
 function openCurrentGameExternal(){
-  if(currentGame?.url)window.open(currentGame.url,'_blank','noopener');
+  if(currentGame?.url)window.open(buildStudentGameUrl(currentGame.url),'_blank','noopener');
 }
 window.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('player').classList.contains('show'))closeGamePlayer()});
 renderLogin();
