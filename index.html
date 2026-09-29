@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Kru Pai Digital Classroom V2.4H-Test — Student Access Diagnostics</title>
+<title>Kru Pai Digital Classroom V2.4H — Student Access</title>
 <style>
 :root{
   --ink:#17324d;--muted:#6f8294;--paper:#fffef9;--mint:#4ed9bd;--sky:#6bbcff;
@@ -169,7 +169,7 @@ button,input{font:inherit}
     <p>ห้องเรียนดิจิทัล • เรียนรู้ผ่านภารกิจและเกม 🎮📚</p>
   </header>
   <main id="app"></main>
-  <div class="footer">Kru Pai Digital Classroom • Student Web V2.4H-Test • Diagnostics + Student History Bridge</div>
+  <div class="footer">Kru Pai Digital Classroom • Student Web V2.4H • Student History Bridge</div>
 </div>
 
 <div id="welcome" class="welcome-overlay">
@@ -216,7 +216,6 @@ async function loadData(){
     onlineReady=true;
     onlineLoading=false;
     updateLoginStatus(`🟢 ห้องเรียนพร้อม • ${DATA.classrooms?.length||0} Classroom`,'ok');
-    updateDiagnostics();
   }catch(e){
     onlineReady=false;
     onlineLoading=false;
@@ -231,21 +230,6 @@ function updateLoginStatus(text,state){
   el.textContent=text;
   el.dataset.state=state||'';
 }
-
-function updateDiagnostics(){
-  const el=$('diagnostics');
-  if(!el)return;
-  if(!DATA){
-    el.innerHTML='🧪 <b>V2.4H-Test</b><br>ยังไม่มีข้อมูล Online สำหรับตรวจสอบ';
-    return;
-  }
-  const students=Array.isArray(DATA.students)?DATA.students:[];
-  const classrooms=Array.isArray(DATA.classrooms)?DATA.classrooms:[];
-  const target='KP013';
-  const found=students.find(x=>String(x?.code||'').trim().toUpperCase()===target);
-  const rooms=found?classrooms.filter(c=>(c.memberCodes||[]).map(x=>String(x).trim().toUpperCase()).includes(target)):[];
-  el.innerHTML=`🧪 <b>V2.4H-Test • Online Diagnostics</b><br>👥 รายชื่อนักเรียนที่โหลดได้: <b>${students.length}</b> คน<br>🏫 ห้องเรียนที่โหลดได้: <b>${classrooms.length}</b> ห้อง<br>${found?`✅ <b>พบ ${target}</b> : ${esc(found.name||'ไม่พบชื่อ')}<br>🔗 เป็นสมาชิกห้อง: <b>${rooms.length}</b> ห้อง ${rooms.length?'• '+rooms.map(r=>esc(r.code||r.name||'')).join(', '):''}`:`❌ <b>ไม่พบ ${target}</b> ใน DATA.students ที่ Student Classroom โหลดมา`}<br><span style="font-size:11px;color:#6f8294">ข้อมูลนี้เป็นการตรวจสิ่งที่ Student Classroom ได้รับจาก Online โดยตรง</span>`;
-}
 function renderLogin(){
   session={student:null,classroom:null};
   $('app').innerHTML=`<div class="card login">
@@ -255,7 +239,6 @@ function renderLogin(){
     <input id="dailyCode" class="field" style="margin-top:10px;text-align:center;font-size:26px;font-weight:900;letter-spacing:.14em" placeholder="Daily Code" maxlength="8" autocomplete="off">
     <button id="loginBtn" class="btn primary big" onclick="login()">🔓 ตรวจรหัสและเข้าเรียน</button>
     <div id="onlineStatus" class="notice" data-state="loading">กำลังเชื่อมต่อห้องเรียน Online...</div>
-    <div id="diagnostics" class="notice" style="text-align:left;line-height:1.7;background:#f4f0ff;border-color:#d8ccff;color:#584b87">🧪 <b>V2.4H-Test</b><br>กำลังรอข้อมูล Online เพื่อตรวจ KP013...</div>
     <button id="retryBtn" class="btn" style="display:none;margin-top:8px" onclick="loadData()">🔄 ลองเชื่อมต่อใหม่</button>
     <div id="err" class="error"></div>
     <div class="notice">🔑 Daily Code ใช้สำหรับสิทธิ์เข้าเรียนของวันนี้เท่านั้น</div>
@@ -263,7 +246,7 @@ function renderLogin(){
   $('code').addEventListener('keydown',e=>{if(e.key==='Enter')$('dailyCode')?.focus()});
   $('dailyCode').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
   setTimeout(()=>$('code')?.focus(),100);
-  if(onlineReady){ updateLoginStatus(`🟢 ห้องเรียนพร้อม • ${DATA?.classrooms?.length||0} Classroom`,'ok'); updateDiagnostics(); }
+  if(onlineReady) updateLoginStatus(`🟢 ห้องเรียนพร้อม • ${DATA?.classrooms?.length||0} Classroom`,'ok');
   else loadData();
 }
 function localAccessDate(){
